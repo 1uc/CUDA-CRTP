@@ -32,31 +32,28 @@ class Impl : public CRTPBase<Impl> {
     Impl(double x)
       : x(x)
     { }
-
-    template<class E>
-    __host__ __device__ __inline__
-    void operator=(const CRTPBase<E> &e_) {
-      const E& e = static_cast<const E&>(e_);
-      x = e.x;
-    }
 };
+
+template<class E>
+double get_x(const CRTPBase<E> &crtp_base) {
+  const E & e = static_cast<const E&>(crtp_base);
+  return e.x;
+}
 
 
 __global__
 void crtp_on_device_kernel(double * ret) {
   // The next three line will be referred to as (1)
-  Impl x(1.0);
-  CRTPBase<Impl> &e = x;
-  x = e;
+  Impl impl(1.0);
+  double x = get_x(impl);
 
-  *ret = x.x;
+  *ret = x;   // prevent NVCC from eliminating the kernel altogether.
 }
 
 void crtp_on_host() {
   // Note, these three lines are one-to-one copy of (1)
-  Impl x(1.0);
-  CRTPBase<Impl> &e = x;
-  x = e;
+  Impl impl(1.0);
+  double x = get_x(impl);
 
   printf("HURRAY, for the host.\n");
 }
@@ -72,13 +69,15 @@ void crtp_on_device() {
   cudaFinalize();
 }
 
-
 int main() {
   crtp_on_host();
   crtp_on_device();
 
   return 0;
 }
+
+// ------------------------------------------------------------------------------
+// ---- Pretty printing ---------------------------------------------------------
 
 /// Clean up CUDA
 void cudaFinalize(void){
