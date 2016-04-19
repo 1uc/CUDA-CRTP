@@ -1,6 +1,14 @@
 # CUDA-CRTP
 Subtle CRTP run-time error in CUDA.
 
+Please run
+
+    ./run_test.sh
+
+This will build and run the scripts and collect version info of CUDA driver and
+toolkit.
+
+## Compilation
 Compile with
 
     make
